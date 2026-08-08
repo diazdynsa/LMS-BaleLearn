@@ -2,7 +2,11 @@
 import { useState, useRef } from 'react';
 import { Upload, File as FileIcon, FileText, Image as ImageIcon, X } from 'lucide-react';
 
-export default function FileDropZone() {
+interface Props {
+  onFilesChange?: (files: File[]) => void;
+}
+
+export default function FileDropZone({ onFilesChange }: Props) {
   const [files, setFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string>('');
@@ -48,7 +52,9 @@ export default function FileDropZone() {
       return;
     }
     
-    setFiles([...files, ...validFiles]);
+    const updated = [...files, ...validFiles];
+    setFiles(updated);
+    if (onFilesChange) onFilesChange(updated);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -68,7 +74,9 @@ export default function FileDropZone() {
   };
 
   const removeFile = (index: number) => {
-    setFiles(files.filter((_, i) => i !== index));
+    const updated = files.filter((_, i) => i !== index);
+    setFiles(updated);
+    if (onFilesChange) onFilesChange(updated);
   };
 
   const getFileIcon = (type: string) => {
@@ -92,9 +100,10 @@ export default function FileDropZone() {
         <p className="text-slate-600 dark:text-slate-400 mb-4">
           Seret file ke sini atau klik untuk memilih
         </p>
-        <input 
-          type="file" 
-          className="hidden" 
+        <input
+          type="file"
+          accept=".pdf,.doc,.docx,.jpg,.png,application/pdf"
+          className="hidden"
           ref={fileInputRef}
           onChange={handleFileSelect}
           multiple
