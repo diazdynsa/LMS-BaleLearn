@@ -1,0 +1,136 @@
+/**
+ * Global CSS — Design System untuk BaleLearn LMS
+ * Gaya: Academic Professional / Modern Flat Design
+ * Tidak menggunakan glassmorphism atau bento grid.
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans antialiased bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold text-slate-900 dark:text-white;
+  }
+
+  a {
+    @apply text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300;
+    transition: color 0.15s ease;
+  }
+}
+
+@layer components {
+  /* Card — container utama konten, flat design, max rounded-md */
+  .card {
+    @apply bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 p-5;
+  }
+
+  /* Tombol CTA utama — Navy Blue */
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white
+           bg-primary-500 hover:bg-primary-600 active:bg-primary-700
+           rounded-md transition-all duration-150 ease-in-out
+           focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2
+           dark:focus:ring-offset-slate-800;
+  }
+
+  /* Tombol sekunder — outline */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium
+           text-primary-600 dark:text-primary-300
+           bg-primary-50 dark:bg-primary-900/30
+           hover:bg-primary-100 dark:hover:bg-primary-900/50
+           border border-primary-200 dark:border-primary-700
+           rounded-md transition-all duration-150 ease-in-out
+           focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2
+           dark:focus:ring-offset-slate-800;
+  }
+
+  /* Tombol aksen — Gold/Amber, hanya untuk CTA yang perlu perhatian */
+  .btn-accent {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium
+           text-white bg-accent-500 hover:bg-accent-600 active:bg-accent-700
+           rounded-md transition-all duration-150 ease-in-out
+           focus:outline-none focus:ring-2 focus:ring-accent-400 focus:ring-offset-2
+           dark:focus:ring-offset-slate-800;
+  }
+
+  /* Badge — label status kecil */
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold;
+  }
+  .badge-success {
+    @apply badge bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400;
+  }
+  .badge-warning {
+    @apply badge bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400;
+  }
+  .badge-danger {
+    @apply badge bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400;
+  }
+  .badge-info {
+    @apply badge bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400;
+  }
+  .badge-neutral {
+    @apply badge bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300;
+  }
+
+  /* Input field */
+  .input-field {
+    @apply w-full px-3 py-2 text-sm rounded-md border border-slate-300 dark:border-slate-600
+           bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100
+           placeholder-slate-400 dark:placeholder-slate-500
+           focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400
+           dark:focus:ring-primary-500 dark:focus:border-primary-500
+           transition-colors duration-150;
+  }
+
+  /* Section header — judul section dashboard dengan border-bottom */
+  .section-header {
+    @apply flex items-center gap-2 pb-3 mb-4 border-b border-slate-200 dark:border-slate-700;
+  }
+  .section-header h2 {
+    @apply text-base font-bold text-primary-700 dark:text-primary-300;
+  }
+  .section-header svg {
+    @apply w-5 h-5 text-primary-500 dark:text-primary-400;
+  }
+
+  /* Toast notification — top-right agar tidak bentrok dengan AI chatbot */
+  .toast {
+    @apply fixed top-6 right-6 z-[60] px-4 py-3 rounded-md shadow-lg text-sm font-medium
+           bg-emerald-600 text-white animate-slide-up;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 dark:bg-slate-600;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-400 dark:bg-slate-500;
+}
+
+/* View Transitions API — animasi radial sweep dark mode */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  z-index: 9999;
+}
