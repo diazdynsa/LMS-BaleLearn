@@ -16,8 +16,8 @@ BaleLearn adalah platform *Learning Management System* modern dan responsif yang
 - **Penguncian Deadline Otomatis**: Form pengumpulan dan opsi membatalkan pengumpulan secara otomatis dikunci (hilang dari UI) begitu batas waktu (*deadline*) terlewati.
 - **Sinkronisasi Lintas-Halaman (Cross-Component Reactivity)**: Status pengumpulan tugas (*submitted*) di halaman Tugas secara _real-time_ menyelaraskan daftar pada *widget* "Tugas Terdekat" di Dashboard menggunakan *Event Dispatchers* dan penyimpanan `localStorage`.
 - **Forum Diskusi Interaktif**: Modul percakapan mahasiswa dan dosen. Dilengkapi *expandable threads*, mode buka-tutup teks penuh, serta modal konfirmasi berbasis *Portal* yang dioptimalkan untuk seluler.
-- **Rekapitulasi Nilai Responsif**: Ringkasan SKS, IPK, dan detail mata kuliah menggunakan sistem tabel berskala dengan kemampuan geser samping (*horizontal scroll*) rapi untuk ukuran HP.
-- **Desain "Monochrome Luxe" & Mobile-First**: Pendekatan UI/UX akademik profesional (perpaduan Navy Blue & Amber), UI bebas efek kaca (*glassmorphism*), dan penyesuaian font/padding eksklusif perangkat *mobile*.
+- **Tabel Nilai Responsif**: Rekapitulasi hasil studi dan IPK dalam format tabel padat berskala khusus perangkat *mobile* (*horizontal scroll* yang aman dari bocor antarmuka).
+- **Desain Profesional & Akademik**: Pendekatan antarmuka yang bersih (*clean*), rapi, dan responsif. Menggunakan skema warna yang mencerminkan institusi pendidikan tinggi (perpaduan Biru Navigasi & Aksen Emas/Kuning) dengan layout *Mobile-First*.
 
 ## 🛠️ Stack Teknologi
 
