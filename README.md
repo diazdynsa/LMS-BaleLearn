@@ -1,39 +1,49 @@
-# BaleLearn — Learning Management System (LMS) FTI
+# 🎓 BaleLearn — Learning Management System (LMS)
 
-BaleLearn adalah platform LMS modern yang dirancang untuk mendukung proses pembelajaran akademik, pengelolaan tugas, dan diskusi kolaboratif di Fakultas Teknologi Informasi. Aplikasi ini menawarkan tampilan responsif untuk perangkat mobile dan desktop, serta dukungan mode fokus materi dan mode gelap/terang.
+![Next JS](https://img.shields.io/badge/Next-black?style=for-the-badge&logo=next.js&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
 
-## Teknologi
+BaleLearn adalah platform *Learning Management System* modern dan responsif yang dirancang khusus untuk mendukung kegiatan akademik, pengelolaan tugas mahasiswa, serta diskusi kolaboratif berbasis komunitas di **Fakultas Teknologi Informasi (FTI) — Universitas Bale Bandung (UNIBBA)**.
 
-- **Next.js** (App Router)
-- **React**
-- **Tailwind CSS**
-- Siap dideploy ke **Vercel** atau **Netlify**
+🔗 **Repository:** [https://github.com/diazdynsa/LMS-BaleLearn](https://github.com/diazdynsa/LMS-BaleLearn)
 
-## Fitur Utama
+---
 
-- **Dashboard Akademik & Tugas Terdekat**: Ringkasan tugas, jadwal, dan prioritas materi pembelajaran.
-- **Zen Mode**: Tampilan belajar yang fokus dan minim gangguan.
-- **Forum Diskusi Interaktif**: Posting diskusi, like, dan fitur hapus thread dengan modal konfirmasi kustom.
-- **Mobile-First & Responsive Design**: Antarmuka yang rapi di perangkat mobile maupun desktop.
-- **Dark / Light Mode Toggle**: Pilihan tema gelap atau terang untuk kenyamanan pengguna.
+## 🌟 Fitur Utama
 
-## Cara Menjalankan Secara Lokal
+- **Pusat Pengumpulan Tugas Adaptif**: Mendukung pengiriman tugas multi-format (Upload File, Kirim Link Repository, atau Tulis Teks Jawaban Langsung). Terdapat juga opsi "Tandai Selesai" untuk tugas luring (*offline*).
+- **Penguncian Deadline Otomatis**: Form pengumpulan dan opsi membatalkan pengumpulan secara otomatis dikunci (hilang dari UI) begitu batas waktu (*deadline*) terlewati.
+- **Sinkronisasi Lintas-Halaman (Cross-Component Reactivity)**: Status pengumpulan tugas (*submitted*) di halaman Tugas secara _real-time_ menyelaraskan daftar pada *widget* "Tugas Terdekat" di Dashboard menggunakan *Event Dispatchers* dan penyimpanan `localStorage`.
+- **Forum Diskusi Interaktif**: Modul percakapan mahasiswa dan dosen. Dilengkapi *expandable threads*, mode buka-tutup teks penuh, serta modal konfirmasi berbasis *Portal* yang dioptimalkan untuk seluler.
+- **Rekapitulasi Nilai Responsif**: Ringkasan SKS, IPK, dan detail mata kuliah menggunakan sistem tabel berskala dengan kemampuan geser samping (*horizontal scroll*) rapi untuk ukuran HP.
+- **Desain "Monochrome Luxe" & Mobile-First**: Pendekatan UI/UX akademik profesional (perpaduan Navy Blue & Amber), UI bebas efek kaca (*glassmorphism*), dan penyesuaian font/padding eksklusif perangkat *mobile*.
 
-1. Clone repository:
+## 🛠️ Stack Teknologi
+
+- **Framework:** Next.js 16 (App Router)
+- **Styling:** Tailwind CSS v3
+- **Bahasa:** TypeScript
+- **State Management:** React Hooks + Browser Local Storage
+- **Ikon:** Lucide React
+
+## 🚀 Cara Menjalankan Secara Lokal
+
+1. **Kloning Repositori**
    ```bash
-   git clone <repo-url>
+   git clone https://github.com/diazdynsa/LMS-BaleLearn.git
    ```
-2. Masuk ke direktori proyek:
+2. **Pindah ke Direktori Proyek**
    ```bash
-   cd lms-platform
+   cd LMS-BaleLearn
    ```
-3. Install dependensi:
+   *(Catatan: Sesuaikan nama folder jika Anda mengubah namanya saat *clone*)*
+3. **Instal Dependensi**
    ```bash
    npm install
    ```
-4. Jalankan server development:
+4. **Jalankan Server Development**
    ```bash
    npm run dev
    ```
-
-Buka `http://localhost:3000` di browser untuk melihat aplikasi berjalan.
+5. Buka `http://localhost:3000` di *browser* Anda untuk menjelajahi platform LMS ini.
