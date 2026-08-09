@@ -13,6 +13,7 @@ export function UpcomingTasks() {
   const router = useRouter();
   const [tugasPending, setTugasPending] = useState<Tugas[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [showAllItems, setShowAllItems] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -40,7 +41,22 @@ export function UpcomingTasks() {
   }, []);
 
   const tugasTerdekat = [...tugasPending]
-    .sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
+    .sort((a, b) => {
+      const now = Date.now();
+      const timeA = new Date(a.deadline).getTime();
+      const timeB = new Date(b.deadline).getTime();
+      
+      const isPastA = timeA < now;
+      const isPastB = timeB < now;
+
+      // Jika satu sudah lewat dan yang lain belum, utamakan yang belum lewat
+      if (isPastA !== isPastB) {
+        return isPastA ? 1 : -1;
+      }
+
+      // Jika sama-sama lewat atau sama-sama belum, urutkan berdasarkan deadline terdekat
+      return timeA - timeB;
+    });
 
   if (!mounted) {
     return <div className="card min-h-[200px] animate-pulse"></div>;
@@ -54,12 +70,12 @@ export function UpcomingTasks() {
       </div>
 
       <div className="mt-4 space-y-3">
-        {tugasTerdekat.map(tugas => {
+        {tugasTerdekat.map((tugas, index) => {
           const sisaWaktu = hitungSisaWaktu(tugas.deadline);
           const isUrgent = sisaWaktu.teks.includes('hari') && parseInt(sisaWaktu.teks) < 3 && !sisaWaktu.sudahLewat;
 
           return (
-            <div key={tugas.id} className="flex items-center justify-between p-3 border border-slate-200 dark:border-slate-700 rounded-md">
+            <div key={tugas.id} className={`flex items-center justify-between p-3 border border-slate-200 dark:border-slate-700 rounded-md ${!showAllItems && index > 0 ? 'hidden' : 'block'} md:block`}>
               <div className="space-y-1 flex-1 mr-3">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-medium text-slate-800 dark:text-slate-200 text-sm">{tugas.judul}</span>
@@ -96,6 +112,15 @@ export function UpcomingTasks() {
           </div>
         )}
       </div>
+
+      {tugasTerdekat.length > 1 && (
+        <button
+          onClick={() => setShowAllItems(!showAllItems)}
+          className="w-full text-center text-xs font-medium text-slate-500 hover:text-primary-600 dark:hover:text-primary-400 py-2 mt-2 md:hidden"
+        >
+          {showAllItems ? 'Tutup' : `Lihat ${tugasTerdekat.length - 1} tugas lainnya...`}
+        </button>
+      )}
     </div>
   );
 }

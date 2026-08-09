@@ -9,6 +9,7 @@ import { dataPengumuman, formatWaktuRelatif } from '@/data/mockData';
 */
 export function AnnouncementCard() {
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
+  const [showAllItems, setShowAllItems] = useState(false);
 
   const toggleExpand = (id: string) => {
     setExpandedIds(prev => 
@@ -24,12 +25,12 @@ export function AnnouncementCard() {
       </div>
 
       <div className="mt-4 space-y-3">
-        {dataPengumuman.map((pengumuman: any) => {
+        {dataPengumuman.map((pengumuman: any, index: number) => {
           const isExpanded = expandedIds.includes(pengumuman.id);
           return (
             <div 
               key={pengumuman.id}
-              className="p-3 border rounded-md cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+              className={`p-3 border rounded-md cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${!showAllItems && index > 0 ? 'hidden' : 'block'} md:block`}
               onClick={() => toggleExpand(pengumuman.id)}
             >
               <div className="flex items-start gap-3">
@@ -60,6 +61,15 @@ export function AnnouncementCard() {
           );
         })}
       </div>
+
+      {dataPengumuman.length > 1 && (
+        <button
+          onClick={() => setShowAllItems(!showAllItems)}
+          className="w-full text-center text-xs font-medium text-slate-500 hover:text-primary-600 dark:hover:text-primary-400 py-2 mt-2 md:hidden"
+        >
+          {showAllItems ? 'Tutup' : `Lihat ${dataPengumuman.length - 1} pengumuman lainnya...`}
+        </button>
+      )}
     </div>
   );
 }

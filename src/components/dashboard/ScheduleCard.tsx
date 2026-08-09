@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { Calendar } from 'lucide-react';
 import { dataJadwal } from '@/data/mockData';
 
 export function ScheduleCard() {
+  const [showAllItems, setShowAllItems] = useState(false);
+
   return (
     <div className="card">
       <div className="section-header">
@@ -10,10 +13,10 @@ export function ScheduleCard() {
       </div>
       
       <div className="mt-4 space-y-4">
-        {dataJadwal.map((jadwal: any) => (
+        {dataJadwal.map((jadwal: any, index: number) => (
           <div 
             key={jadwal.id} 
-            className={`flex flex-col gap-1 p-3 border rounded-md ${jadwal.status === 'berlangsung' ? 'border-l-2 border-l-accent-500 bg-accent-50/50 dark:bg-accent-900/20' : 'bg-slate-50 dark:bg-slate-800/50'}`}
+            className={`flex flex-col gap-1 p-3 border rounded-md ${jadwal.status === 'berlangsung' ? 'border-l-2 border-l-accent-500 bg-accent-50/50 dark:bg-accent-900/20' : 'bg-slate-50 dark:bg-slate-800/50'} ${!showAllItems && index > 0 ? 'hidden' : 'block'} md:block`}
           >
             <div className="flex items-center justify-between">
               <span className="font-medium text-slate-800 dark:text-slate-200">{jadwal.mataKuliah}</span>
@@ -28,6 +31,15 @@ export function ScheduleCard() {
           </div>
         ))}
       </div>
+
+      {dataJadwal.length > 1 && (
+        <button
+          onClick={() => setShowAllItems(!showAllItems)}
+          className="w-full text-center text-xs font-medium text-slate-500 hover:text-primary-600 dark:hover:text-primary-400 py-2 mt-2 md:hidden"
+        >
+          {showAllItems ? 'Tutup' : `Lihat ${dataJadwal.length - 1} jadwal lainnya...`}
+        </button>
+      )}
     </div>
   );
 }
