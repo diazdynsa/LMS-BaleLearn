@@ -11,7 +11,7 @@ import FileDropZone from '@/components/assignments/FileDropZone';
 */
 
 type StoredFile = { name: string; size: number };
-type SubmissionMeta = { files: StoredFile[]; timestamp: number; status: 'submitted' };
+type SubmissionMeta = { type?: 'file' | 'link' | 'text' | 'empty'; files?: StoredFile[]; url?: string; content?: string; timestamp: number; status: 'submitted' };
 export default function AssignmentsPage() {
   const [activeTab, setActiveTab] = useState('Semua');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -22,6 +22,20 @@ export default function AssignmentsPage() {
   const [isConfirming, setIsConfirming] = useState(false);
   const [currentSubmittingTask, setCurrentSubmittingTask] = useState<string | null>(null);
   const [unsubmitPendingId, setUnsubmitPendingId] = useState<string | null>(null);
+  const [submissionModes, setSubmissionModes] = useState<Record<string, 'file' | 'link' | 'text'>>({});
+  const [linkInputs, setLinkInputs] = useState<Record<string, string>>({});
+  const [textInputs, setTextInputs] = useState<Record<string, string>>({});
+  const [submittedData, setSubmittedData] = useState<Record<string, SubmissionMeta>>({});
+
+  const isValidUrl = (url: string) => {
+    if (!url) return false;
+    try {
+      new URL(url);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
 
   const tabs = ['Semua', 'Belum', 'Dikumpulkan', 'Dinilai', 'Terlambat'];
 
@@ -42,7 +56,7 @@ export default function AssignmentsPage() {
     setMounted(true);
     // Load persisted submissions from localStorage
     try {
-      const restoredFiles: Record<string, StoredFile[]> = {};
+      const restoredData: Record<string, SubmissionMeta> = {};
       setTugasLocal(prev => prev.map(t => {
         const key = `balelearn_submission_${t.id}`;
         const raw = localStorage.getItem(key);
@@ -50,7 +64,7 @@ export default function AssignmentsPage() {
           try {
             const parsed = JSON.parse(raw) as SubmissionMeta;
             if (parsed?.status === 'submitted') {
-              restoredFiles[t.id] = parsed.files || [];
+              restoredData[t.id] = parsed;
               return { ...t, status: 'dikumpulkan' };
             }
           } catch (e) {
@@ -59,11 +73,14 @@ export default function AssignmentsPage() {
         }
         return t;
       }));
-      if (Object.keys(restoredFiles).length > 0) {
+      setSubmittedData(restoredData);
+      if (Object.keys(restoredData).length > 0) {
         setSelectedFilesByTask(prev => {
           const copy: Record<string, any> = { ...prev };
-          for (const k of Object.keys(restoredFiles)) {
-            copy[k] = restoredFiles[k].map(f => ({ name: f.name, size: f.size } as any));
+          for (const k of Object.keys(restoredData)) {
+            if (restoredData[k].files) {
+              copy[k] = restoredData[k].files!.map(f => ({ name: f.name, size: f.size } as any));
+            }
           }
           return copy;
         });
@@ -76,18 +93,46 @@ export default function AssignmentsPage() {
   const confirmSubmit = () => {
     if (!currentSubmittingTask) return;
     const id = currentSubmittingTask;
-    // Persist metadata to localStorage
-    const files = selectedFilesByTask[id] || [];
-    const meta: SubmissionMeta = {
-      files: files.map(f => ({ name: (f as any).name, size: (f as any).size })),
-      timestamp: Date.now(),
-      status: 'submitted',
-    };
+    const mode = submissionModes[id] || 'file';
+    let meta: SubmissionMeta;
+
+    const isEmpty = mode === 'file' ? (selectedFilesByTask[id] || []).length === 0 
+                  : mode === 'link' ? !linkInputs[id]?.trim()
+                  : !textInputs[id]?.trim();
+
+    if (isEmpty) {
+      meta = { type: 'empty', timestamp: Date.now(), status: 'submitted' };
+    } else if (mode === 'link') {
+      meta = {
+        type: 'link',
+        url: linkInputs[id] || '',
+        timestamp: Date.now(),
+        status: 'submitted',
+      };
+    } else if (mode === 'text') {
+      meta = {
+        type: 'text',
+        content: textInputs[id] || '',
+        timestamp: Date.now(),
+        status: 'submitted',
+      };
+    } else {
+      const files = selectedFilesByTask[id] || [];
+      meta = {
+        type: 'file',
+        files: files.map(f => ({ name: (f as any).name, size: (f as any).size })),
+        timestamp: Date.now(),
+        status: 'submitted',
+      };
+    }
+
     try {
       localStorage.setItem(`balelearn_submission_${id}`, JSON.stringify(meta));
     } catch (e) {
       console.error('Gagal menyimpan ke localStorage', e);
     }
+    
+    setSubmittedData(prev => ({ ...prev, [id]: meta }));
 
     setTugasLocal(prev => prev.map(t => t.id === id ? { ...t, status: 'dikumpulkan' } : t));
     showToast('Tugas berhasil dikumpulkan!');
@@ -112,6 +157,13 @@ export default function AssignmentsPage() {
     }
     setTugasLocal(prev => prev.map(t => t.id === id ? { ...t, status: 'belum' } : t));
     setSelectedFilesByTask(prev => ({ ...prev, [id]: [] }));
+    setLinkInputs(prev => ({ ...prev, [id]: '' }));
+    setTextInputs(prev => ({ ...prev, [id]: '' }));
+    setSubmittedData(prev => {
+      const copy = { ...prev };
+      delete copy[id];
+      return copy;
+    });
     showToast('Pengumpulan dibatalkan');
     setUnsubmitPendingId(null);
   };
@@ -161,6 +213,7 @@ export default function AssignmentsPage() {
         {filteredTugas.map((tugas) => {
           const sisaWaktu = hitungSisaWaktu(tugas.deadline);
           const isExpanded = expandedId === tugas.id;
+          const isPastDeadline = !!tugas.deadline && new Date(tugas.deadline).getTime() < Date.now();
           
           return (
             <div key={tugas.id} className="card p-3 md:p-5">
@@ -206,11 +259,80 @@ export default function AssignmentsPage() {
               </div>
 
                   {isExpanded && (
+                    isPastDeadline && (tugas.status === 'belum' || tugas.status === 'terlambat') ? (
+                      <div className="mt-4 pt-4 md:mt-6 md:pt-6 border-t border-slate-200 dark:border-slate-700 animate-in fade-in slide-in-from-top-4 duration-300">
+                        <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700">
+                          <p className="text-sm text-slate-500 dark:text-slate-400 text-center">
+                            Waktu pengumpulan telah berakhir. Anda tidak dapat mengumpulkan tugas ini.
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
                 <div className="mt-4 pt-4 md:mt-6 md:pt-6 border-t border-slate-200 dark:border-slate-700 animate-in fade-in slide-in-from-top-4 duration-300">
-                  <h4 className="font-semibold text-xs md:text-sm text-slate-800 dark:text-slate-200 mb-3 md:mb-4">
-                    Unggah Berkas Tugas
-                  </h4>
-                  <FileDropZone onFilesChange={(files) => setSelectedFilesByTask(prev => ({ ...prev, [tugas.id]: files }))} />
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
+                    <h4 className="font-semibold text-xs md:text-sm text-slate-800 dark:text-slate-200">
+                      Metode Pengumpulan:
+                    </h4>
+                    <div className="grid grid-cols-3 bg-slate-100 dark:bg-slate-800 rounded-lg p-1 gap-1 w-full sm:w-auto shrink-0">
+                      <button
+                        onClick={() => setSubmissionModes(prev => ({ ...prev, [tugas.id]: 'file' }))}
+                        className={`py-1.5 px-1 sm:px-3 text-[11px] sm:text-xs md:text-sm rounded-md transition-colors text-center font-medium ${
+                          (submissionModes[tugas.id] || 'file') === 'file' 
+                            ? 'bg-white dark:bg-slate-700 shadow-sm text-primary-600 dark:text-primary-400'
+                            : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-normal'
+                        }`}
+                      >
+                        Upload File
+                      </button>
+                      <button
+                        onClick={() => setSubmissionModes(prev => ({ ...prev, [tugas.id]: 'link' }))}
+                        className={`py-1.5 px-1 sm:px-3 text-[11px] sm:text-xs md:text-sm rounded-md transition-colors text-center font-medium ${
+                          submissionModes[tugas.id] === 'link'
+                            ? 'bg-white dark:bg-slate-700 shadow-sm text-primary-600 dark:text-primary-400'
+                            : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-normal'
+                        }`}
+                      >
+                        Kirim Link
+                      </button>
+                      <button
+                        onClick={() => setSubmissionModes(prev => ({ ...prev, [tugas.id]: 'text' }))}
+                        className={`py-1.5 px-1 sm:px-3 text-[11px] sm:text-xs md:text-sm rounded-md transition-colors text-center font-medium ${
+                          submissionModes[tugas.id] === 'text'
+                            ? 'bg-white dark:bg-slate-700 shadow-sm text-primary-600 dark:text-primary-400'
+                            : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-normal'
+                        }`}
+                      >
+                        Tulis Teks
+                      </button>
+                    </div>
+                  </div>
+
+                  {(submissionModes[tugas.id] || 'file') === 'file' ? (
+                    <FileDropZone onFilesChange={(files) => setSelectedFilesByTask(prev => ({ ...prev, [tugas.id]: files }))} />
+                  ) : submissionModes[tugas.id] === 'link' ? (
+                    <div className="w-full">
+                      <input 
+                        type="url" 
+                        className="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:text-white"
+                        value={linkInputs[tugas.id] || ''}
+                        onChange={(e) => setLinkInputs(prev => ({ ...prev, [tugas.id]: e.target.value }))}
+                      />
+                      {linkInputs[tugas.id] && !isValidUrl(linkInputs[tugas.id]) && (
+                        <p className="text-red-500 text-xs mt-1">Format URL tidak valid.</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="w-full">
+                      <textarea
+                        rows={6}
+                        placeholder="Ketik jawaban, catatan, atau paste kode di sini..."
+                        className="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:text-white resize-y"
+                        value={textInputs[tugas.id] || ''}
+                        onChange={(e) => setTextInputs(prev => ({ ...prev, [tugas.id]: e.target.value }))}
+                      ></textarea>
+                    </div>
+                  )}
+
                   <div className="mt-4 flex justify-end">
                     <button
                       onClick={() => { setCurrentSubmittingTask(tugas.id); setIsConfirming(true); }}
@@ -220,11 +342,34 @@ export default function AssignmentsPage() {
                     </button>
                   </div>
                 </div>
+                    )
               )}
               {/* If already submitted, show Edit / Cancel (if before deadline) */}
               {tugas.status === 'dikumpulkan' && (
-                <div className="mt-3 flex gap-2 justify-end">
-                  {new Date(tugas.deadline).getTime() > Date.now() ? (
+                <div className="mt-3">
+                  {submittedData[tugas.id]?.type === 'link' && submittedData[tugas.id]?.url && (
+                    <div className="mb-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-md border border-slate-200 dark:border-slate-700">
+                      <p className="text-xs text-slate-500 mb-1">Link Terkirim:</p>
+                      <a href={submittedData[tugas.id].url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 hover:underline break-all">
+                        {submittedData[tugas.id].url}
+                      </a>
+                    </div>
+                  )}
+                  {submittedData[tugas.id]?.type === 'text' && submittedData[tugas.id]?.content && (
+                    <div className="mb-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 max-h-40 overflow-y-auto">
+                      <p className="text-xs text-slate-500 mb-2 font-medium">Teks Jawaban:</p>
+                      <div className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap break-words">
+                        {submittedData[tugas.id].content}
+                      </div>
+                    </div>
+                  )}
+                  {submittedData[tugas.id]?.type === 'empty' && (
+                    <div className="mb-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-md border border-slate-200 dark:border-slate-700">
+                      <p className="text-sm text-slate-500 italic">Tugas ditandai sebagai selesai tanpa lampiran.</p>
+                    </div>
+                  )}
+                  <div className="flex gap-2 justify-end">
+                  {!isPastDeadline ? (
                     <>
                       <button
                         onClick={() => setExpandedId(isExpanded ? null : tugas.id)}
@@ -242,6 +387,7 @@ export default function AssignmentsPage() {
                   ) : (
                     <span className="text-xs text-slate-500">Deadline telah lewat. Tidak dapat diedit.</span>
                   )}
+                  </div>
                 </div>
               )}
             </div>
@@ -266,19 +412,54 @@ export default function AssignmentsPage() {
               <div className="absolute inset-0 bg-black/40" onClick={() => { setIsConfirming(false); setCurrentSubmittingTask(null); }} />
               <div className="relative z-10 w-full max-w-md mx-4 bg-white dark:bg-slate-900 rounded-lg shadow-lg p-5">
                 <h3 className="font-semibold text-lg text-slate-900 dark:text-white">Konfirmasi Pengumpulan</h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">Periksa kembali file yang akan dikumpulkan untuk tugas ini.</p>
-
+                
                 <div className="mt-4 max-h-40 overflow-auto space-y-2">
-                  {(selectedFilesByTask[currentSubmittingTask] || []).length === 0 ? (
-                    <div className="text-sm text-slate-500">Belum ada file terpilih.</div>
-                  ) : (
-                    (selectedFilesByTask[currentSubmittingTask] || []).map((f, idx) => (
-                      <div key={idx} className="flex items-center justify-between bg-slate-50 dark:bg-slate-800 p-2 rounded">
-                        <div className="truncate text-sm font-medium">{f.name}</div>
-                        <div className="text-xs text-slate-500">{(f.size/1024/1024).toFixed(2)} MB</div>
-                      </div>
-                    ))
-                  )}
+                  {(() => {
+                    const mode = submissionModes[currentSubmittingTask] || 'file';
+                    const isEmpty = mode === 'file' ? (selectedFilesByTask[currentSubmittingTask] || []).length === 0 
+                                  : mode === 'link' ? !linkInputs[currentSubmittingTask]?.trim()
+                                  : !textInputs[currentSubmittingTask]?.trim();
+                    
+                    if (isEmpty) {
+                      return (
+                        <div className="text-sm text-slate-600 dark:text-slate-400">
+                          {mode === 'file' ? 'Belum ada file terpilih. ' : mode === 'link' ? 'Belum ada link yang dimasukkan. ' : 'Belum ada teks yang ditulis. '}
+                          Apakah Anda ingin menandai tugas ini sebagai selesai?
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Periksa kembali data yang akan dikumpulkan untuk tugas ini.</p>
+                        {mode === 'link' ? (
+                          <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700">
+                            <p className="text-xs text-slate-500 mb-1">Tautan yang akan dikirim:</p>
+                            <a href={linkInputs[currentSubmittingTask]} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-500 break-all hover:underline">
+                              {linkInputs[currentSubmittingTask]}
+                            </a>
+                          </div>
+                        ) : null}
+                        {mode === 'text' ? (
+                          <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700">
+                            <p className="text-xs text-slate-500 mb-2">Teks yang akan dikirim:</p>
+                            <div className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap break-words line-clamp-4">
+                              {textInputs[currentSubmittingTask]}
+                            </div>
+                          </div>
+                        ) : null}
+                        
+                        {mode === 'file' ? (
+                          (selectedFilesByTask[currentSubmittingTask] || []).map((f, idx) => (
+                            <div key={idx} className="flex items-center justify-between bg-slate-50 dark:bg-slate-800 p-2 rounded">
+                              <div className="truncate text-sm font-medium">{f.name}</div>
+                              <div className="text-xs text-slate-500">{(f.size/1024/1024).toFixed(2)} MB</div>
+                            </div>
+                          ))
+                        ) : null}
+                      </>
+                    );
+                  })()}
                 </div>
 
                 <div className="mt-4 flex justify-end gap-2">
