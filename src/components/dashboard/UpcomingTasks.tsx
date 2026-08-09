@@ -62,6 +62,40 @@ export function UpcomingTasks() {
     return <div className="card min-h-[200px] animate-pulse"></div>;
   }
 
+  const renderTugas = (tugas: Tugas) => {
+    const sisaWaktu = hitungSisaWaktu(tugas.deadline);
+    const isUrgent = sisaWaktu.teks.includes('hari') && parseInt(sisaWaktu.teks) < 3 && !sisaWaktu.sudahLewat;
+
+    return (
+      <div key={tugas.id} className="flex items-center justify-between p-3 border border-slate-200 dark:border-slate-700 rounded-md">
+        <div className="space-y-1 flex-1 mr-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-medium text-slate-800 dark:text-slate-200 text-sm">{tugas.judul}</span>
+            {tugas.prioritas === 'tinggi' && <span className="badge badge-danger">Tinggi</span>}
+            {tugas.prioritas === 'sedang' && <span className="badge badge-warning">Sedang</span>}
+            {tugas.prioritas === 'rendah' && <span className="badge badge-neutral">Rendah</span>}
+          </div>
+          <div className="text-xs text-slate-500 dark:text-slate-400">
+            <p>{tugas.mataKuliah}</p>
+            <p className={isUrgent || sisaWaktu.sudahLewat ? 'text-red-500 font-medium' : ''}>
+              {sisaWaktu.teks}
+            </p>
+          </div>
+        </div>
+        {sisaWaktu.sudahLewat ? (
+            <span className="text-xs text-slate-500 italic shrink-0">Waktu Habis</span>
+        ) : (
+          <button
+            className="btn-primary text-xs px-3 py-1.5 shrink-0"
+            onClick={() => router.push('/assignments')}
+          >
+            Kumpulkan
+          </button>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="card">
       <div className="section-header">
@@ -69,40 +103,18 @@ export function UpcomingTasks() {
         <h2>Tugas Terdekat</h2>
       </div>
 
-      <div className="mt-4 space-y-3">
-        {tugasTerdekat.map((tugas, index) => {
-          const sisaWaktu = hitungSisaWaktu(tugas.deadline);
-          const isUrgent = sisaWaktu.teks.includes('hari') && parseInt(sisaWaktu.teks) < 3 && !sisaWaktu.sudahLewat;
+      <div className="mt-4 flex flex-col">
+        {tugasTerdekat.slice(0, 1).map(renderTugas)}
 
-          return (
-            <div key={tugas.id} className={`flex items-center justify-between p-3 border border-slate-200 dark:border-slate-700 rounded-md ${!showAllItems && index > 0 ? 'hidden' : 'block'} md:block`}>
-              <div className="space-y-1 flex-1 mr-3">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-medium text-slate-800 dark:text-slate-200 text-sm">{tugas.judul}</span>
-                  {tugas.prioritas === 'tinggi' && <span className="badge badge-danger">Tinggi</span>}
-                  {tugas.prioritas === 'sedang' && <span className="badge badge-warning">Sedang</span>}
-                  {tugas.prioritas === 'rendah' && <span className="badge badge-neutral">Rendah</span>}
-                </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400">
-                  <p>{tugas.mataKuliah}</p>
-                  <p className={isUrgent || sisaWaktu.sudahLewat ? 'text-red-500 font-medium' : ''}>
-                    {sisaWaktu.teks}
-                  </p>
-                </div>
-              </div>
-              {sisaWaktu.sudahLewat ? (
-                 <span className="text-xs text-slate-500 italic shrink-0">Waktu Habis</span>
-              ) : (
-                <button
-                  className="btn-primary text-xs px-3 py-1.5 shrink-0"
-                  onClick={() => router.push('/assignments')}
-                >
-                  Kumpulkan
-                </button>
-              )}
+        <div 
+          className={`grid transition-all duration-300 ease-in-out md:!grid-rows-[1fr] md:!opacity-100 ${showAllItems ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
+        >
+          <div className="overflow-hidden">
+            <div className="pt-3 space-y-3">
+              {tugasTerdekat.slice(1).map(renderTugas)}
             </div>
-          );
-        })}
+          </div>
+        </div>
 
         {tugasTerdekat.length === 0 && (
           <div className="text-center py-6 flex flex-col items-center justify-center space-y-2">
