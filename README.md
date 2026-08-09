@@ -21,7 +21,7 @@ BaleLearn adalah platform LMS modern yang dirancang untuk mendukung proses pembe
 
 1. Clone repository:
    ```bash
-   git clone <repo-url>
+   git clone <https://github.com/diazdynsa/LMS-BaleLearn>
    ```
 2. Masuk ke direktori proyek:
    ```bash
