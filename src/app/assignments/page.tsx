@@ -140,6 +140,7 @@ export default function AssignmentsPage() {
     setIsConfirming(false);
     // keep selectedFilesByTask so filenames remain visible
     setCurrentSubmittingTask(null);
+    window.dispatchEvent(new Event('submission-update'));
   };
 
   // Unsubmit flow: request -> confirm -> remove persisted data
@@ -166,6 +167,7 @@ export default function AssignmentsPage() {
     });
     showToast('Pengumpulan dibatalkan');
     setUnsubmitPendingId(null);
+    window.dispatchEvent(new Event('submission-update'));
   };
 
   const cancelUnsubmit = () => setUnsubmitPendingId(null);

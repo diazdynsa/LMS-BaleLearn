@@ -1,8 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { ListTodo } from 'lucide-react';
-import { dataTugas, hitungSisaWaktu } from '@/data/mockData';
+import { ListTodo, CheckCircle } from 'lucide-react';
+import { dataTugas, hitungSisaWaktu, type Tugas } from '@/data/mockData';
+import { useState, useEffect } from 'react';
 
 /*
   Menampilkan tugas terdekat (belum dikumpulkan) dengan tombol "Kumpulkan"
@@ -10,10 +11,40 @@ import { dataTugas, hitungSisaWaktu } from '@/data/mockData';
 */
 export function UpcomingTasks() {
   const router = useRouter();
+  const [tugasPending, setTugasPending] = useState<Tugas[]>([]);
+  const [mounted, setMounted] = useState(false);
 
-  const tugasTerdekat = dataTugas
-    .filter(t => t.status === 'belum')
+  useEffect(() => {
+    setMounted(true);
+    
+    const fetchStatuses = () => {
+      const updatedTasks = dataTugas.map(tugas => {
+        const key = `balelearn_submission_${tugas.id}`;
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (parsed?.status === 'submitted') {
+              return { ...tugas, status: 'dikumpulkan' as const };
+            }
+          } catch (e) {}
+        }
+        return tugas;
+      });
+      setTugasPending(updatedTasks.filter(t => t.status === 'belum' || t.status === 'terlambat'));
+    };
+
+    fetchStatuses();
+    window.addEventListener('submission-update', fetchStatuses);
+    return () => window.removeEventListener('submission-update', fetchStatuses);
+  }, []);
+
+  const tugasTerdekat = [...tugasPending]
     .sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
+
+  if (!mounted) {
+    return <div className="card min-h-[200px] animate-pulse"></div>;
+  }
 
   return (
     <div className="card">
@@ -43,19 +74,26 @@ export function UpcomingTasks() {
                   </p>
                 </div>
               </div>
-              {/* Tombol Kumpulkan mengarahkan ke halaman /assignments */}
-              <button
-                className="btn-primary text-xs px-3 py-1.5 shrink-0"
-                onClick={() => router.push('/assignments')}
-              >
-                Kumpulkan
-              </button>
+              {sisaWaktu.sudahLewat ? (
+                 <span className="text-xs text-slate-500 italic shrink-0">Waktu Habis</span>
+              ) : (
+                <button
+                  className="btn-primary text-xs px-3 py-1.5 shrink-0"
+                  onClick={() => router.push('/assignments')}
+                >
+                  Kumpulkan
+                </button>
+              )}
             </div>
           );
         })}
 
         {tugasTerdekat.length === 0 && (
-          <p className="text-center text-slate-500 text-sm py-4">Tidak ada tugas mendekati deadline.</p>
+          <div className="text-center py-6 flex flex-col items-center justify-center space-y-2">
+            <CheckCircle className="w-8 h-8 text-emerald-400 mb-1" />
+            <p className="text-slate-500 text-sm font-medium">Luar biasa!</p>
+            <p className="text-slate-400 text-xs">Semua tugas Anda sudah beres.</p>
+          </div>
         )}
       </div>
     </div>
