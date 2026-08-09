@@ -25,7 +25,7 @@ BaleLearn adalah platform LMS modern yang dirancang untuk mendukung proses pembe
    ```
 2. Masuk ke direktori proyek:
    ```bash
-   cd lms-platform
+   cd LMS-BaleLearn
    ```
 3. Install dependensi:
    ```bash
